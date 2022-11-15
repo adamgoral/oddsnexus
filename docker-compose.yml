@@ -1,0 +1,25 @@
+version: '3.2'
+services:
+  consumer:
+    container_name: market_discovery
+    build: market_discovery/.
+    depends_on:
+      - kafka
+    restart: unless-stopped
+  zookeeper:
+    container_name: zookeeper
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    restart: unless-stopped
+  kafka:
+    container_name: kafka
+    image: wurstmeister/kafka
+    ports:
+      - 9092:9092
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+    restart: unless-stopped
+    depends_on:
+      - zookeeper

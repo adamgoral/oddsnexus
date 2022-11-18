@@ -1,5 +1,7 @@
 import pytest
 
+from oddsnexus.domain.markets import OrderBook
 
-def test_dump():
-    ...
+
+async def test_dump():
+    OrderBook(event_id='', bids=[], offers=[]).dumps()

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 import faust
 
-from oddsnexus.domain.common import Aggregate, DateTime, Entity, ID, valueobject
+from oddsnexus.domain.common import Aggregate, DateTime, Entity, ID, UniqueId, eventgeneratingmethod, valueobject
 
 
 Status = str
@@ -30,11 +30,33 @@ class Result():
     ...
 
 class Event(Aggregate, abstract=True):
-    id: ID
     start: DateTime
     status: Status
-    venue_id: ID
+    venue_id: UniqueId
     result: Result
+
+    def __init__(self, start: DateTime, venue_id: ID) -> 'Event':
+        super().__init__()
+        self.start = start
+        self.venue_id = venue_id
+        self.status = Status.SCHEDULED
+        self.result = None
+
+    class ResultUpdated(Entity.Event):
+        result: Result
+
+    class StatusUpdated(Entity.Event):
+        status: Status
+
+    @eventgeneratingmethod(ResultUpdated)
+    def update_result(self, result: Result):
+        self.result = result
+        self.update_status(Status.COMPLETED)
+
+    @eventgeneratingmethod(StatusUpdated)
+    def update_status(self, status: Status):
+        self.status = status
+
 
 @valueobject
 class SoccerScores():
@@ -54,6 +76,19 @@ class SoccerMatch(Event):
     home: Team
     away: Team
     result: SoccerMatchResult
+
+    class Created(Entity.Event):
+        home: Team
+        away: Team
+
+    @eventgeneratingmethod(Created)
+    def __init__(self) -> 'SoccerMatch':
+        super().__init__()
+
+
+    def set_result(self, result: SoccerMatchResult):
+        self.result = result
+
 
 class HorseRace(Event):
     venue: RaceTrack

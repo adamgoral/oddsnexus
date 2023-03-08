@@ -1,0 +1,10 @@
+name: oddsnexus
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - flask
+  - python=3.10
+  - pytest
+  - pip:
+    - faust

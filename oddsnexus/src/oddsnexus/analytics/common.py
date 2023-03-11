@@ -1,8 +1,8 @@
 
-from oddsnexus.domain.common import ID, valueobject
+from oddsnexus.domain.common import UniqueId, valueobject
 
 
 @valueobject
 class Event:
-    id: ID
-    sports_event_id: ID
+    id: UniqueId
+    sports_event_id: UniqueId

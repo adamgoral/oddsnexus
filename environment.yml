@@ -8,3 +8,4 @@ dependencies:
   - pytest
   - pip:
     - faust
+    - pytest-asyncio

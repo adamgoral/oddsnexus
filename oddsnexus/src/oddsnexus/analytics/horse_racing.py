@@ -1,6 +1,6 @@
 from oddsnexus.analytics.common import Event
-from oddsnexus.domain.common import ID
+from oddsnexus.domain.common import UniqueId
 
 
 class HorseRaceWinner(Event):
-    runner_id: ID
+    runner_id: UniqueId

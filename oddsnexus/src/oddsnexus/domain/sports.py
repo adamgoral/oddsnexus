@@ -1,9 +1,11 @@
 from abc import ABC
+from dataclasses import field
 from enum import Enum
-from dataclasses import dataclass
+from functools import singledispatchmethod
 from typing import List
 
-from oddsnexus.domain.common import Aggregate, DateTime, Entity, ID, UniqueId, eventgeneratingmethod, valueobject
+from oddsnexus.domain.common import Aggregate, DateTime, Entity, UniqueId, eventgeneratingmethod, valueobject, domainobject
+from oddsnexus.domain.common import get_filtered_kwargs_for_type
 
 
 Status = str
@@ -20,7 +22,7 @@ class Status(Enum):
 
 
 class Venue(Aggregate, ABC):
-    id: ID
+    id: UniqueId
 
 class RaceTrack(Venue):
     ...
@@ -29,24 +31,24 @@ class RaceTrack(Venue):
 class Result():
     ...
 
-class Event(Aggregate, ABC):
+@domainobject
+class SportsEvent(Aggregate, ABC):
     start: DateTime
-    status: Status
+    status: Status = field(default=Status.SCHEDULED)
     venue_id: UniqueId
-    result: Result
-
-    def __init__(self, start: DateTime, venue_id: ID) -> 'Event':
-        super().__init__()
-        self.start = start
-        self.venue_id = venue_id
-        self.status = Status.SCHEDULED
-        self.result = None
+    result: Result = field(default=None)
 
     class ResultUpdated(Entity.Event):
         result: Result
 
     class StatusUpdated(Entity.Event):
         status: Status
+
+    @valueobject
+    class Created(Entity.Event):
+        start: DateTime
+        venue_id: UniqueId
+
 
     @eventgeneratingmethod(ResultUpdated)
     def update_result(self, result: Result):
@@ -56,6 +58,18 @@ class Event(Aggregate, ABC):
     @eventgeneratingmethod(StatusUpdated)
     def update_status(self, status: Status):
         self.status = status
+
+    @singledispatchmethod
+    def _apply(self, event: 'Entity.Event'):
+        return super().apply(event)
+
+    @_apply.register(ResultUpdated)
+    def _(self, event: 'SportsEvent.ResultUpdated'):
+        self.result = event.result
+        
+    @_apply.register(StatusUpdated)
+    def _(self, event: 'SportsEvent.StatusUpdated'):
+        self.status = event.status
 
 
 @valueobject
@@ -72,26 +86,35 @@ class SoccerMatchResult(Result):
 class HorseRaceResult(Result):
     finishers: List[Runner]
 
-@dataclass
-class SoccerMatch(Event):
+
+@domainobject
+class SoccerMatch(SportsEvent):
     home: Team
     away: Team
-    result: SoccerMatchResult
 
-    class Created(Entity.Event):
+    @valueobject
+    class Created(SportsEvent.Created):
         home: Team
         away: Team
 
-    @eventgeneratingmethod(Created)
-    def __init__(self) -> 'SoccerMatch':
-        super().__init__()
+    # @eventgeneratingmethod(Created)
+    # def __init__(self, home: Team, away: Team, *args, **kwargs) -> 'SoccerMatch':
+    #     self.home = home
+    #     self.away = away
+    #     super().__init__(*args, **kwargs)
+        
+    @classmethod
+    def from_event(cls, event: 'SoccerMatch.Created'):
+        kwargs = get_filtered_kwargs_for_type(SoccerMatch, **event.__dict__)
+        result = SoccerMatch(**kwargs)
+        return result
+
+    @singledispatchmethod
+    def _apply(self, event: 'Entity.Event'):
+        return super().apply(event)
 
 
-    def set_result(self, result: SoccerMatchResult):
-        self.result = result
-
-
-class HorseRace(Event):
+class HorseRace(SportsEvent):
     venue: RaceTrack
     runners: List[Runner]
     result: HorseRaceResult

@@ -1,7 +1,7 @@
+from abc import ABC
 from enum import Enum
 from dataclasses import dataclass
 from typing import List
-import faust
 
 from oddsnexus.domain.common import Aggregate, DateTime, Entity, ID, UniqueId, eventgeneratingmethod, valueobject
 
@@ -19,7 +19,7 @@ class Status(Enum):
     CANCELLED = 'cancelled'
 
 
-class Venue(Aggregate, abstract=True):
+class Venue(Aggregate, ABC):
     id: ID
 
 class RaceTrack(Venue):
@@ -29,7 +29,7 @@ class RaceTrack(Venue):
 class Result():
     ...
 
-class Event(Aggregate, abstract=True):
+class Event(Aggregate, ABC):
     start: DateTime
     status: Status
     venue_id: UniqueId
@@ -72,6 +72,7 @@ class SoccerMatchResult(Result):
 class HorseRaceResult(Result):
     finishers: List[Runner]
 
+@dataclass
 class SoccerMatch(Event):
     home: Team
     away: Team

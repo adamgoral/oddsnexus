@@ -1,9 +1,8 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import datetime as dt
 from typing import List, Type
 import uuid
-
-import faust
 
 
 ID = str
@@ -27,13 +26,15 @@ class UniqueId:
     def create() -> 'UniqueId':
         return UniqueId(uuid.uuid4())
 
-class Message(faust.Record, abstract=True):
+
+class Message(ABC):
     timestamp: Timestamp
 
-class Entity(faust.Record, abstract=True):
+
+class Entity(ABC):
     unique_id: ID
     
-    events: List['Entity.Event'] = faust.models.fields.FieldDescriptor(exclude=True)
+    events: List['Entity.Event']
 
     def __init__(self) -> 'Entity':
         self.unique_id = UniqueId.create()
@@ -44,14 +45,15 @@ class Entity(faust.Record, abstract=True):
         self.events = []
         return result
 
-    class Event(Message, abstract=True):
+    class Event(Message, ABC):
         entity_id: ID
 
-    class Command(Message, abstract=True):
+    class Command(Message, ABC):
         ...
 
-class Aggregate(Entity, abstract=True):
+class Aggregate(Entity, ABC):
     ...
+    
 
 def eventgeneratingmethod(event_type: Type):
     

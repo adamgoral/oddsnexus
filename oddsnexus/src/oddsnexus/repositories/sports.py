@@ -10,7 +10,7 @@ def get_db_connection() -> pymongo.MongoClient:
 
 
 def get_upcoming_matches():
-    date = datetime.today()
+    date = datetime.combine(datetime.today(), datetime.min.time())
     client = get_db_connection()
     db = client.football
     matches = db['sportinglife.matches']

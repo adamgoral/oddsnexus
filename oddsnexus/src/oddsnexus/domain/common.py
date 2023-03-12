@@ -9,7 +9,7 @@ import uuid
 DateTime = dt.datetime
 
 valueobject = dataclass(frozen=True, eq=True, kw_only=True)
-domainobject = dataclass(eq=True, kw_only=True)
+domainobject = dataclass(kw_only=True)
 
 class AggregateEventIdMismatch(Exception):
     aggregate_id: str
@@ -55,7 +55,7 @@ class Entity(ABC):
 
 @domainobject
 class Aggregate(Entity, ABC):
-    events: List['Entity.Event'] = field(default_factory=list)
+    events: List['Entity.Event'] = field(default_factory=list, compare=False)
 
     @property
     def uncommited_events(self):

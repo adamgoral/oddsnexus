@@ -9,7 +9,7 @@ class Market(faust.Record):
 app = faust.App('odds-nexus-markets-discovery', broker='kafka://kafka:9092')
 markets = app.topic('markets', value_type=Market)
 
-@app.timer(interval=1.0)
+@app.timer(interval=60.0)
 async def market(app):
     greeting = Market(timestamp=dt.datetime.now(), id='test', description='test description')
     await markets.send(

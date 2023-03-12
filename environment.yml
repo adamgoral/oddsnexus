@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - flask
+  - pymongo
   - python=3.10
   - pytest
   - pip:

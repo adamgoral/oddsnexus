@@ -1,0 +1,10 @@
+FROM python:3.10-slim
+
+WORKDIR /usr/src/app
+
+COPY ./oddsnexus/src .
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install gunicorn
+
+CMD [ "gunicorn", "-w", "4", "-b", "0.0.0.0", "oddsnexus.services.sports.webapi:create_app()"]

@@ -1,5 +1,15 @@
 version: '3.2'
 services:
+  webapi:
+    container_name: webapi
+    build:
+      context: .
+      dockerfile: ./webapi/Dockerfile.dev
+    ports:
+      - 8000:8000
+    environment:
+      - MONGO_CONNECTION=mongodb://mongo:27017
+    restart: unless-stopped
   consumer:
     container_name: market_discovery
     build: market_discovery/.

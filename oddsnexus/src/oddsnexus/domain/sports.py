@@ -21,6 +21,10 @@ class Status(Enum):
     CANCELLED = 'cancelled'
 
 
+class Source(Enum):
+    BETFAIR = 'betfair'
+    
+
 class Venue(Aggregate, ABC):
     id: UniqueId
 
@@ -30,6 +34,13 @@ class RaceTrack(Venue):
 @valueobject
 class Result():
     ...
+
+
+@valueobject
+class SourceId:
+    source: Source
+    id: str
+
 
 @domainobject
 class SportsEvent(Aggregate, ABC):
@@ -49,6 +60,13 @@ class SportsEvent(Aggregate, ABC):
         start: DateTime
         venue_id: UniqueId
 
+    @valueobject
+    class Observed(Entity.Event):
+        start: DateTime
+        venue_id: UniqueId
+        source_id: SourceId
+        status: Status = field(default=Status.SCHEDULED)
+        
 
     @eventgeneratingmethod(ResultUpdated)
     def update_result(self, result: Result):
@@ -97,6 +115,12 @@ class SoccerMatch(SportsEvent):
         home: Team
         away: Team
 
+    @valueobject
+    class Observed(SportsEvent.Observed):
+        home: Team
+        away: Team
+        result: SoccerMatchResult = field(default=None)
+        
     # @eventgeneratingmethod(Created)
     # def __init__(self, home: Team, away: Team, *args, **kwargs) -> 'SoccerMatch':
     #     self.home = home

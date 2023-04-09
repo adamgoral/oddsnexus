@@ -8,28 +8,24 @@ services:
     ports:
       - 8000:8000
     environment:
-      - MONGO_CONNECTION=mongodb://mongo:27017
+      - MONGO_CONNECTION=mongodb+srv://airflow-simple:airflow-simple@mongodb
     restart: unless-stopped
-  consumer:
-    container_name: market_discovery
-    build: market_discovery/.
-    depends_on:
-      - kafka
-    restart: unless-stopped
-  zookeeper:
-    container_name: zookeeper
-    image: wurstmeister/zookeeper
-    ports:
-      - 2181:2181
-    restart: unless-stopped
-  kafka:
-    container_name: kafka
-    image: wurstmeister/kafka
-    ports:
-      - 9092:9092
+
+  mongodb:
+    image: mongo:6.0
+    restart: always
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=kafka
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-    restart: unless-stopped
-    depends_on:
-      - zookeeper
+      - MONGO_INITDB_ROOT_USERNAME=airflow-simple-user
+      - MONGO_INITDB_ROOT_PASSWORD=airflow-simple-password
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - airflow-mongo-db-volume:/data/db
+
+volumes:
+  airflow-mongo-db-volume:

@@ -1,3 +1,4 @@
 faust
 flask
+flask-caching
 pymongo

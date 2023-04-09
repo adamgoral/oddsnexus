@@ -48,9 +48,7 @@ def get_upcoming_matches():
         }
     ])
     
-    result = []
-    for match in matches:
-        result.append(match)
-        
+    result = list(matches)
+
     return result
     

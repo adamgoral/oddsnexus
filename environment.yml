@@ -8,6 +8,7 @@ dependencies:
   - pymongo
   - python=3.10
   - pytest
+  - requests
   - pip:
     - faust
     - pytest-asyncio

@@ -1,9 +1,7 @@
 
 from datetime import date
 import requests
-from typing import List
-
-from oddsnexus.domain.sports import HorseRace
+from typing import Dict, List
 
 
 class SportingLifeSource:
@@ -12,28 +10,36 @@ class SportingLifeSource:
         self._base_url = base_url
     
     def get_horses(self, horse_ids: List[str]) -> List[dict]:
-        pass
-    
-    def get_races(self, race_ids: List[str]) -> List[HorseRace]:
         result = []
+        for horse_id in horse_ids:
+            request_url = f'{self._base_url}/horse-racing/horse/{horse_id}'
+            response = requests.get(request_url)
+            response.raise_for_status()
+            result.append(response.json())
+        return result
+    
+    def get_races(self, race_ids: List[str]) -> Dict[str, dict]:
+        result = {}
         for race_id in race_ids:
             request_url = f'{self._base_url}/horse-racing/race/{race_id}'
             response = requests.get(request_url)
             response.raise_for_status()
-            result.append(HorseRace.from_dict(response.json()))
+            result[race_id] = response.json()
         return result
     
     def list_races(self, as_of: date) -> List[dict]:
         request_url = f'{self._base_url}/horse-racing/racing/racecards/{as_of:%Y-%m-%d}'
         response = requests.get(request_url)
         response.raise_for_status()
-        result = []
+        result = {}
         for item in response.json():
             race_ids = []
             for race in item['races']:
                 race_id = race.get('race_summary_reference', {}).get('id', None)
+                if race_id is None:
+                    raise Exception(f'could not obtain race id from json data {race}')
                 race_ids.append(race_id)
             races = self.get_races(race_ids)
-            result += races
-        return result
+            result.update(races)
+        return list(result.values())
     
